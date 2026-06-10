@@ -159,22 +159,4 @@ with col12:
     fig3.update_layout(coloraxis_showscale=False, margin=dict(t=10, b=10))
     st.plotly_chart(fig3, use_container_width=True)
 
-st.divider()
-with st.expander("Why is R² relatively low? (Interview explanation)"):
-    st.markdown("""
-**This is expected and explainable — not a flaw.**
 
-Engagement prediction is one of the hardest problems in media analytics because:
-
-1. **Simulated data** — our engagement metrics are generated, not real user behaviour
-2. **Missing signals** — real models use: author reputation, time of day, trending topics, social amplification, homepage placement
-3. **Inherent randomness** — even at top media companies, content virality has a significant random component
-
-**What we did to maximise signal:**
-- Combined structural features (title length, word count) with semantic TF-IDF features
-- Improved R² by 32× over the linear baseline (0.006 → 0.188)
-- Reframed as binary classification to answer the practical editorial question: *"Will this outperform?"*
-- Fixed class imbalance with `class_weight='balanced'`, improving Top Performer recall from 6% to 79%
-
-**Real-world next steps:** Add author history, time-of-day features, social trend signals, and word embeddings (BERT).
-    """)
