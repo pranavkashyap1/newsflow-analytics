@@ -1,9 +1,19 @@
 import os
 
+def _get_api_key():
+    try:
+        import streamlit as st
+        key = st.secrets.get("GROQ_API_KEY", None)
+        if key:
+            return key
+    except Exception:
+        pass
+    return os.getenv("GROQ_API_KEY")
+
 def get_model():
     try:
         from groq import Groq
-        api_key = os.getenv("GROQ_API_KEY")
+        api_key = _get_api_key()
         if not api_key or api_key == "your_groq_api_key_here":
             return None
         return Groq(api_key=api_key)
