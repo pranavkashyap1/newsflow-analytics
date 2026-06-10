@@ -175,6 +175,6 @@ At 5,000 rows, Random Forest is appropriately complex. It handles mixed feature 
 ## Author
 
 **Pranav Kashyap** — B.Tech Computer Science
-Built for Times Group Internship Application | Data Science & AI Automation Track
+
 
 [![GitHub](https://img.shields.io/badge/GitHub-pranavkashyap1-black?logo=github)](https://github.com/pranavkashyap1)
