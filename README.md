@@ -69,31 +69,30 @@ Three models power the prediction engine:
 
 ---
 
-## Project Architecture newsflow-analytics/
-├── app.py                    ← Landing page + auto-setup
-├── setup.py                  ← First-run data pipeline + model training
-├── requirements.txt
-│
-├── src/                      ← Business logic (pure Python, no Streamlit)
-│   ├── data_loader.py        ← Load AG News CSV, map labels to categories
-│   ├── preprocessor.py       ← Feature engineering, engagement simulation
-│   ├── analytics.py          ← KPI computations, aggregations
-│   ├── ml_models.py          ← Train/load Random Forest models
-│   ├── nlp_analyzer.py       ← TF-IDF pipeline, headline analysis
-│   ├── ai_assistant.py       ← Groq API integration, rule-based fallback
-│   └── report_generator.py  ← PDF generation with FPDF2
-│
-├── pages/                    ← Streamlit multi-page app
-│   ├── 01_Executive.py
-│   ├── 02_Analytics.py
-│   ├── 03_ML_Predictor.py
-│   ├── 04_AI_Assistant.py
-│   └── 05_Reports.py
-│
-├── data/
-│   └── raw/train.csv         ← AG News dataset
-│
-└── models/                   ← Saved .pkl model files (auto-generated)  
+## Project Architecture
+
+    newsflow-analytics/
+    |-- app.py                    # Landing page + auto-setup
+    |-- setup.py                  # First-run data pipeline + model training
+    |-- requirements.txt
+    |-- src/
+    |   |-- data_loader.py        # Load AG News CSV
+    |   |-- preprocessor.py       # Feature engineering
+    |   |-- analytics.py          # KPI computations
+    |   |-- ml_models.py          # Random Forest models
+    |   |-- nlp_analyzer.py       # TF-IDF + headline analysis
+    |   |-- ai_assistant.py       # Groq API integration
+    |   |-- report_generator.py   # PDF generation
+    |-- pages/
+    |   |-- 01_Executive.py
+    |   |-- 02_Analytics.py
+    |   |-- 03_ML_Predictor.py
+    |   |-- 04_AI_Assistant.py
+    |   |-- 05_Reports.py
+    |-- data/
+    |   |-- raw/train.csv         # AG News dataset
+    |-- models/                   # Saved .pkl files (auto-generated)
+
 ---
 
 ## Setup & Run Locally
