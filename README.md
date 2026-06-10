@@ -93,7 +93,8 @@ Three models power the prediction engine:
 ├── data/
 │   └── raw/train.csv         ← AG News dataset
 │
-└── models/                   ← Saved .pkl model files (auto-generated)  ---
+└── models/                   ← Saved .pkl model files (auto-generated)  
+---
 
 ## Setup & Run Locally
 
