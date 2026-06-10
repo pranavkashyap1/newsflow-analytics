@@ -11,11 +11,15 @@ def _get_api_key():
         return None
 
 def get_model():
-    from groq import Groq
     api_key = _get_api_key()
-    if not api_key or api_key == "your_groq_api_key_here":
+    if not api_key:
         return None
-    return Groq(api_key=api_key)
+    try:
+        from groq import Groq
+        return Groq(api_key=api_key)
+    except Exception as e:
+        print(f"Groq init error: {e}")
+        return None
 
 def _groq_complete(client, prompt):
     response = client.chat.completions.create(
@@ -68,7 +72,7 @@ Provide exactly the following:
 Be specific, data-driven, and concise. Think like a media executive.
 """
         return {"source": "groq", "content": _groq_complete(client, prompt)}
-    except Exception as e:
+    except Exception:
         return _rule_based_recommendations(kpis, category_df)
 
 
