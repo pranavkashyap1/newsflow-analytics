@@ -2,7 +2,6 @@
 
 > AI-powered analytics platform for digital newsrooms. Analyze content performance, predict article engagement using Machine Learning, and automate editorial reporting.
 
-**Built for:** Times Group Internship | AI Automation, Analytics, BI, Dashboard Development, Reporting Automation
 
 **Live Demo:** [newsflow-analytics.streamlit.app](https://newsflow-analytics-nwljj9yuaxq2xctqkajx4c.streamlit.app)
 
@@ -152,7 +151,7 @@ Source: [Kaggle — AG News Classification Dataset](https://www.kaggle.com/datas
 Real traffic data is proprietary. Simulation with realistic distributions is standard industry practice for building and demonstrating analytics systems.
 
 **Why binary classification over 3-class?**
-A 3-class model (Low/Medium/High) had poor recall across all classes due to overlapping distributions. Reframing as binary (Top Performer vs Average) and applying `class_weight='balanced'` improved Top Performer recall from 6% to 79% — far more useful for editorial decisions.
+A 3-class model (Low/Medium/High) had poor recall across all classes due to overlapping distributions. Reframing as binary (Top Performer vs Average) and applying `class_weight='balanced'` improved Top Performer recall from 6% to 79%   far more useful for editorial decisions.
 
 **Why TF-IDF over BERT embeddings?**
 TF-IDF is interpretable, fast, and interview-explainable. It improved R² by 32× over structural features alone. BERT is the natural next step with more compute.
