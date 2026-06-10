@@ -1,28 +1,27 @@
 import os
-from groq import Groq
-
 
 def get_model():
     try:
-        from dotenv import load_dotenv
-
-        load_dotenv()
-
+        from groq import Groq
         api_key = os.getenv("GROQ_API_KEY")
-
-        if not api_key:
+        if not api_key or api_key == "your_groq_api_key_here":
             return None
-
         return Groq(api_key=api_key)
-
     except Exception:
         return None
 
+def _groq_complete(client, prompt):
+    response = client.chat.completions.create(
+        model="llama3-8b-8192",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=1024,
+        temperature=0.7,
+    )
+    return response.choices[0].message.content
 
 def generate_editorial_recommendations(kpis, category_df, top_articles_df):
-    model = get_model()
-
-    if model is None:
+    client = get_model()
+    if client is None:
         return _rule_based_recommendations(kpis, category_df)
 
     category_summary = category_df[
@@ -36,7 +35,6 @@ def generate_editorial_recommendations(kpis, category_df, top_articles_df):
 
     prompt = f"""
 You are a senior editorial strategist at a major digital media company.
-
 Analyze the following content performance data and provide actionable recommendations.
 
 PLATFORM METRICS:
@@ -52,158 +50,93 @@ CATEGORY PERFORMANCE:
 TOP 5 ARTICLES THIS PERIOD:
 {top_titles}
 
-Provide exactly:
+Provide exactly the following:
+1. EXECUTIVE SUMMARY (2 sentences max)
+2. TOP 3 OPPORTUNITIES (specific, actionable)
+3. UNDERPERFORMING AREAS (what to fix and how)
+4. CONTENT STRATEGY FOR NEXT WEEK (1 specific recommendation)
+5. PREDICTED GROWTH LEVER (one insight that could move the needle most)
 
-1. EXECUTIVE SUMMARY
-2. TOP 3 OPPORTUNITIES
-3. UNDERPERFORMING AREAS
-4. CONTENT STRATEGY RECOMMENDATION
-5. PREDICTED GROWTH LEVER
-
-Be concise, data-driven, and actionable.
+Be specific, data-driven, and concise. Think like a media executive.
 """
-
     try:
-        response = model.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            temperature=0.7,
-            max_tokens=1000
-        )
-
-        return {
-            "source": "groq",
-            "content": response.choices[0].message.content
-        }
-
-    except Exception as e:
-        print(f"Groq Error: {e}")
+        return {"source": "groq", "content": _groq_complete(client, prompt)}
+    except Exception:
         return _rule_based_recommendations(kpis, category_df)
 
 
 def generate_headline_suggestions(category, topic, performance_data):
-    model = get_model()
-
-    if model is None:
+    client = get_model()
+    if client is None:
         return _rule_based_headlines(category, topic)
 
     prompt = f"""
-You are an expert digital news editor.
+You are an expert digital news editor specializing in high-engagement headlines.
 
-Generate 5 highly engaging news headlines.
-
-Category: {category}
-Topic: {topic}
+Generate 5 optimized headlines for:
+- Category: {category}
+- Topic: {topic}
+- Target: maximize engagement and click-through rate
 
 Rules:
-- Under 15 words
-- News-style
-- Mix curiosity, numbers, and authority
-- Suitable for a major publication
-- Return ONLY the headlines as a numbered list
+- Each headline must be under 15 words
+- Mix question, number, and statement formats
+- Use power words where natural
+- Be factually plausible for a news context
+
+Return ONLY the 5 headlines as a numbered list. No explanations.
 """
-
     try:
-        response = model.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            temperature=0.9,
-            max_tokens=300
-        )
-
-        text = response.choices[0].message.content
-
-        lines = [
-            l.strip()
-            for l in text.strip().split("\n")
-            if l.strip()
-        ]
-
-        headlines = []
-
-        for line in lines:
-            cleaned = line.lstrip("0123456789.-) ").strip()
-            if cleaned:
-                headlines.append(cleaned)
-
-        return {
-            "source": "groq",
-            "headlines": headlines[:5]
-        }
-
-    except Exception as e:
-        print(f"Groq Error: {e}")
+        text = _groq_complete(client, prompt)
+        lines = [l.strip() for l in text.strip().split("\n") if l.strip()]
+        headlines = [l.lstrip("0123456789.-) ") for l in lines if l and l[0].isdigit()]
+        return {"source": "groq", "headlines": headlines[:5]}
+    except Exception:
         return _rule_based_headlines(category, topic)
 
 
 def _rule_based_recommendations(kpis, category_df):
-    top_cat = kpis["top_category"]
+    top_cat     = kpis["top_category"]
     total_views = kpis["total_views"]
-    avg_eng = kpis["avg_engagement"]
-
-    sorted_df = category_df.sort_values(
-        "avg_engagement",
-        ascending=False
-    )
-
-    bottom_cat = sorted_df.iloc[-1]["category"]
-    top_eng = sorted_df.iloc[0]["avg_engagement"]
-    bot_eng = sorted_df.iloc[-1]["avg_engagement"]
-
-    gap = top_eng - bot_eng
+    avg_eng     = kpis["avg_engagement"]
+    sorted_df   = category_df.sort_values("avg_engagement", ascending=False)
+    bottom_cat  = sorted_df.iloc[-1]["category"]
+    top_eng     = sorted_df.iloc[0]["avg_engagement"]
+    bot_eng     = sorted_df.iloc[-1]["avg_engagement"]
+    gap         = top_eng - bot_eng
 
     content = f"""
 ## Executive Summary
-
-{top_cat} content is the strongest performer with the highest average engagement score.
-
+{top_cat} content is the strongest performer with the highest average engagement score on the platform.
 Total platform views stand at {total_views:,} with an average engagement score of {avg_eng:,.0f}.
 
 ## Top 3 Opportunities
-
-1. Scale {top_cat} content.
-2. Improve headline optimization.
-3. Increase exposure for high-performing authors.
+1. **Scale {top_cat} content** — highest engagement category. Increase publishing frequency by 20% and assign senior authors.
+2. **Data-driven headlines** — articles with specific numbers consistently outperform. Enforce this in editorial guidelines.
+3. **Author leverage** — top author significantly outperforms platform average. Pair them with underperforming categories.
 
 ## Underperforming Areas
+**{bottom_cat}** has a {gap:.0f} point engagement gap vs the top category.
+Action: Audit the last 30 {bottom_cat} articles. Compare headline structure, length, and publishing time vs top performers.
 
-{bottom_cat} trails the leading category by {gap:.0f} engagement points.
-
-## Content Strategy Recommendation
-
-Publish more high-performing content formats and strengthen distribution.
+## Content Strategy for Next Week
+Produce 3 long-form {top_cat} pieces targeting high search-volume topics.
+Each piece should have a data-driven headline with specific numbers and at least one power word.
 
 ## Predicted Growth Lever
-
-Improving {bottom_cat} engagement could significantly increase total platform performance.
+Improving {bottom_cat} engagement by 15% through headline optimization could add
+approximately {int(bot_eng * 0.15 * 1250):,} engagement points to weekly platform totals.
+This is the highest-leverage action available given the current content distribution.
 """
-
-    return {
-        "source": "rule_based",
-        "content": content
-    }
+    return {"source": "rule_based", "content": content}
 
 
 def _rule_based_headlines(category, topic):
-    headlines = [
+    templates = [
         f"Breaking: {topic} Reshapes {category} Landscape",
         f"5 Reasons {topic} Is Changing {category} Forever",
-        f"Exclusive: What {topic} Means for {category}",
-        f"Is {topic} the Biggest {category} Story This Year?",
-        f"How {topic} Could Transform {category} Markets"
+        f"Exclusive: What {topic} Means for {category} in 2025",
+        f"Is {topic} the Biggest {category} Story of the Year?",
+        f"Record Numbers: How {topic} Is Driving {category} Growth",
     ]
-
-    return {
-        "source": "rule_based",
-        "headlines": headlines
-    }
+    return {"source": "rule_based", "headlines": templates}
