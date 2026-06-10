@@ -84,6 +84,6 @@ def process_and_save(raw_df, output_path="data/processed/articles.csv"):
     os.makedirs("data/processed", exist_ok=True)
     print("Engineering features...")
     df = engineer_features(raw_df)
-    df.to_csv(output_path, index=False)
+    df.to_csv(output_path, index=False, quoting=1)
     print(f"Saved {len(df):,} processed articles to {output_path}")
     return df

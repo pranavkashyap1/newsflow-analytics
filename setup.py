@@ -2,7 +2,6 @@ import os
 import pandas as pd
 
 def setup():
-    # Generate processed data if missing
     if not os.path.exists("data/processed/articles.csv"):
         print("Generating processed dataset...")
         from src.data_loader import load_raw_data
@@ -11,10 +10,9 @@ def setup():
         process_and_save(df)
         print("Dataset ready.")
 
-    # Train models if missing
     if not os.path.exists("models/rf_regressor.pkl"):
         print("Training ML models...")
-        df = pd.read_csv("data/processed/articles.csv")
+        df = pd.read_csv("data/processed/articles.csv", quoting=1)
         from src.ml_models import train_models
         from src.nlp_analyzer import train_nlp_model
         train_models(df)

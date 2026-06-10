@@ -12,7 +12,7 @@ st.set_page_config(page_title="ML Predictor", page_icon="🤖", layout="wide")
 
 @st.cache_data
 def load_data():
-    return pd.read_csv("data/processed/articles.csv")
+    return pd.read_csv("data/processed/articles.csv", quoting=1)
 
 @st.cache_resource
 def load_all_models():

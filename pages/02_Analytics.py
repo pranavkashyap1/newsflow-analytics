@@ -13,7 +13,7 @@ st.set_page_config(page_title="Analytics", page_icon="📈", layout="wide")
 def load_data():
     from datetime import datetime
 
-    df = pd.read_csv("data/processed/articles.csv")
+    df = pd.read_csv("data/processed/articles.csv", quoting=1)
 
     def safe_parse(x):
         try:
