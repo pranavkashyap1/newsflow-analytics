@@ -1,24 +1,21 @@
 import os
 
 def _get_api_key():
+    key = os.getenv("GROQ_API_KEY")
+    if key:
+        return key
     try:
         import streamlit as st
-        key = st.secrets.get("GROQ_API_KEY", None)
-        if key:
-            return key
-    except Exception:
-        pass
-    return os.getenv("GROQ_API_KEY")
-
-def get_model():
-    try:
-        from groq import Groq
-        api_key = _get_api_key()
-        if not api_key or api_key == "your_groq_api_key_here":
-            return None
-        return Groq(api_key=api_key)
+        return st.secrets["GROQ_API_KEY"]
     except Exception:
         return None
+
+def get_model():
+    from groq import Groq
+    api_key = _get_api_key()
+    if not api_key or api_key == "your_groq_api_key_here":
+        return None
+    return Groq(api_key=api_key)
 
 def _groq_complete(client, prompt):
     response = client.chat.completions.create(
@@ -30,20 +27,21 @@ def _groq_complete(client, prompt):
     return response.choices[0].message.content
 
 def generate_editorial_recommendations(kpis, category_df, top_articles_df):
-    client = get_model()
-    if client is None:
-        return _rule_based_recommendations(kpis, category_df)
+    try:
+        client = get_model()
+        if client is None:
+            return _rule_based_recommendations(kpis, category_df)
 
-    category_summary = category_df[
-        ["category", "avg_engagement", "total_views", "article_count"]
-    ].to_string(index=False)
+        category_summary = category_df[
+            ["category", "avg_engagement", "total_views", "article_count"]
+        ].to_string(index=False)
 
-    top_titles = "\n".join(
-        f"- [{row['category']}] {row['title'][:80]} (engagement: {row['engagement_score']:.0f})"
-        for _, row in top_articles_df.head(5).iterrows()
-    )
+        top_titles = "\n".join(
+            f"- [{row['category']}] {row['title'][:80]} (engagement: {row['engagement_score']:.0f})"
+            for _, row in top_articles_df.head(5).iterrows()
+        )
 
-    prompt = f"""
+        prompt = f"""
 You are a senior editorial strategist at a major digital media company.
 Analyze the following content performance data and provide actionable recommendations.
 
@@ -69,18 +67,18 @@ Provide exactly the following:
 
 Be specific, data-driven, and concise. Think like a media executive.
 """
-    try:
         return {"source": "groq", "content": _groq_complete(client, prompt)}
-    except Exception:
+    except Exception as e:
         return _rule_based_recommendations(kpis, category_df)
 
 
 def generate_headline_suggestions(category, topic, performance_data):
-    client = get_model()
-    if client is None:
-        return _rule_based_headlines(category, topic)
+    try:
+        client = get_model()
+        if client is None:
+            return _rule_based_headlines(category, topic)
 
-    prompt = f"""
+        prompt = f"""
 You are an expert digital news editor specializing in high-engagement headlines.
 
 Generate 5 optimized headlines for:
@@ -96,7 +94,6 @@ Rules:
 
 Return ONLY the 5 headlines as a numbered list. No explanations.
 """
-    try:
         text = _groq_complete(client, prompt)
         lines = [l.strip() for l in text.strip().split("\n") if l.strip()]
         headlines = [l.lstrip("0123456789.-) ") for l in lines if l and l[0].isdigit()]
